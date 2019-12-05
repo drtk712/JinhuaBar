@@ -33,6 +33,20 @@ namespace JinhuaBar
             get { return suit; }
             set { suit = value; }
         }
+        public string Suit2Sharp
+        {
+            get
+            {
+                if (suit == Suit.Cube)
+                {
+                    return ((char)suit + " ").ToString();
+                }
+                else
+                {
+                    return ((char)suit).ToString();
+                }
+            }
+        }
         private int number;
         public int Number
         {

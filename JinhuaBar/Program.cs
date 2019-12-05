@@ -15,12 +15,10 @@ namespace JinhuaBar
         {
             Console.OutputEncoding = System.Text.Encoding.UTF8;
             TestGame();
-            ♦
         }
 
         public static void TestGame()
         {
-            Console.OutputEncoding = System.Text.Encoding.UTF8;
             Console.WriteLine("欢迎进行本游戏，请输入游玩人数");
             Player[] players = new Player[Convert.ToInt32(Console.ReadLine())];
             for(int i = 0; i < players.Length; i++)
@@ -29,7 +27,13 @@ namespace JinhuaBar
                 players[i] = new Player(Console.ReadLine());
             }
             Pokers poker = new Pokers();
-            Dealer dealer = new Dealer();
+            Dealer dealer = new Dealer(players);
+            for (int i = 0; i < players.Length; i++)
+            {
+                players[i].Call+=new Player.CallHandler(dealer.PlayerCall);
+                players[i].AddBet+=new Player.AddBetHandler(dealer.PlayerAddBet);
+                players[i].Open+=new Player.OpenHandler(dealer.JudgeWinner);
+            }
             int count = 1;
             while (true)
             {
@@ -50,17 +54,19 @@ namespace JinhuaBar
                     {
                         Console.WriteLine("第{0}轮发牌,给玩家{1}...", j + 1,players[i].Name);
                         dealer.Licensing(poker.Deck, players[i]);
-                        Thread.Sleep(1000);
+                        Thread.Sleep(500);
                     }
                 }
                 Console.WriteLine("发牌完毕，开始游戏...");
                 Thread.Sleep(2000);
                 int step = 0;
-                while (true)
+                while (!dealer.ResetGame)
                 {
                     players[step++ % players.Length].Operate();
                 }
-                
+                dealer.Rest();
+                Console.WriteLine("按任意键继续...");
+                Console.ReadKey();
             }
         }
     }

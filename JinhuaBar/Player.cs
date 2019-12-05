@@ -36,14 +36,12 @@ namespace JinhuaBar
             set
             {
                 cards = value;
-                if (cards.Count == 3)
-                    cards.Sort();
             }
         }
         private CardType cardType;
         public CardType CardType
         {
-            get { return CardType; }
+            get { return cardType; }
             set { cardType = value; }
         }
         private bool isSee = false;
@@ -74,7 +72,7 @@ namespace JinhuaBar
                 Console.WriteLine("----------玩家{0}，请选择你的操作----------", name);
                 See();
                 Console.WriteLine("----------1.跟注(剩余筹码{0}，已投注{1})", chips, myBet);
-                Console.WriteLine("----------2.加注(当前注数{0})",Dealer.stepBet);
+                Console.WriteLine("----------2.加注");
                 Console.WriteLine("----------3.看牌({0})-----------", IsSee2String);
                 Console.WriteLine("----------4.弃牌-----------");
                 Console.WriteLine("----------5.开！-----------");
@@ -100,10 +98,20 @@ namespace JinhuaBar
                 }
                 switch (input)
                 {
-                    case "1": Call(); break;
-                    case "2": AddBet(); break;
-                    case "3": GiveUp(); break;
-                    case "4": Open(); break;
+                    case "1":
+                        while (!Call(this))
+                        {
+                            Operate();
+                        }
+                        break;
+                    case "2":
+                        while (!AddBet(this))
+                        {
+                            Operate();
+                        }
+                        break;
+                    case "4": GiveUp(); break;
+                    case "5": Open(); break;
                 }
             }
             else
@@ -112,26 +120,10 @@ namespace JinhuaBar
             }
 
         }
-        public void Call()
-        {
-            if (!isSee)
-            {
-                chips -= Dealer.stepBet;
-                myBet += Dealer.stepBet;
-                Dealer.sumBet += Dealer.stepBet;
-            }
-            else
-            {
-                chips -= Dealer.stepBet * 2;
-                myBet += Dealer.stepBet * 2;
-                Dealer.sumBet += Dealer.stepBet * 2;
-            }
-        }
-        public void AddBet()
-        {
-            Dealer.stepBet += 20;
-            Call();
-        }
+        public delegate bool CallHandler(Player player);
+        public event CallHandler Call;
+        public delegate bool AddBetHandler(Player player);
+        public event AddBetHandler AddBet;
         public void GiveUp()
         {
             isGiveUp = true;
@@ -143,7 +135,7 @@ namespace JinhuaBar
             {
                 Console.WriteLine("┌─────┐ ┌─────┐ ┌─────┐");
                 Console.WriteLine("│ {0}   │ │ {1}   │ │ {2}   │", cards[0].Number2String, cards[1].Number2String, cards[2].Number2String);
-                Console.WriteLine("│  {0} │ │  {1} │ │  {2} │", (char)cards[0].Suit, (char)cards[1].Suit, (char)cards[2].Suit);
+                Console.WriteLine("│  {0} │ │  {1} │ │  {2} │", cards[0].Suit2Sharp, cards[1].Suit2Sharp, cards[2].Suit2Sharp);
                 Console.WriteLine("│     │ │     │ │     │");
                 Console.WriteLine("└─────┘ └─────┘ └─────┘");
             }
@@ -156,13 +148,8 @@ namespace JinhuaBar
                 Console.WriteLine("└─────┘ └─────┘ └─────┘");
             }
         }
-        public void Open()
-        {
-            Dealer.stepBet *= 2;
-            Call();
-            open open = new open(Dealer.JudgeWinner);
-        }
-        public delegate Player open(Player[] players);
+        public delegate void OpenHandler();
+        public event OpenHandler Open;
         public void RestCard()
         {
             cards.Clear();
