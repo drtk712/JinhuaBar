@@ -124,6 +124,40 @@ namespace JinhuaBar
                 }
             }
         }
+        public void PlayerOpen(Player player)
+        {
+            if (player.Chips < stepBet * 2)
+            {
+                sumBet += player.Chips;
+                player.MyBet += player.Chips;
+                player.Chips = 0;
+                Console.WriteLine("全推！");
+            }
+            else
+            {
+                sumBet += stepBet * 2;
+                player.Chips -= stepBet * 2;
+                player.MyBet += stepBet * 2;
+                Console.WriteLine("开牌成功！");
+            }
+            JudgeWinner();
+        }
+        public void DealOpen()
+        {
+            int count = 0;
+            foreach(Player player in players)
+            {
+                if (!player.IsGiveUp)
+                {
+                    count++;
+                }
+            }
+            if (count == 1)
+            {
+                Console.WriteLine("场上仅剩一名玩家未弃牌，该玩家获胜");
+                JudgeWinner();
+            }
+        }
         public void JudgeWinner()
         {
             Player winner = null;
@@ -226,7 +260,10 @@ namespace JinhuaBar
             sumBet = 0;
             foreach(Player player in players)
             {
-                player.Cards.Clear();
+                player.RestCard();
+                player.IsGiveUp = false;
+                player.IsSee = false;
+                player.MyBet = 0;
             }
         }
     }

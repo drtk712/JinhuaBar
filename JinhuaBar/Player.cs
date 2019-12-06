@@ -64,6 +64,7 @@ namespace JinhuaBar
         public bool IsGiveUp
         {
             get { return isGiveUp; }
+            set { isGiveUp = value; }
         }
         public void Operate()
         {
@@ -77,12 +78,23 @@ namespace JinhuaBar
                 Console.WriteLine("----------4.弃牌-----------");
                 Console.WriteLine("----------5.开！-----------");
                 string input;
-                while (true)//输入判断
+                //输入判断
+                while (true)
                 {
                     input = Console.ReadLine();
-                    if(input=="1"|| input == "2"|| input == "4" || input == "5")
+                    if(input=="1")
                     {
-                        break;
+                        if (Call(this))
+                        {
+                            break;
+                        }
+                    }
+                    else if (input == "2")
+                    {
+                        if (AddBet(this))
+                        {
+                            break;
+                        }
                     }
                     else if (input == "3")
                     {
@@ -91,34 +103,26 @@ namespace JinhuaBar
                         Console.WriteLine();
                         Console.WriteLine("请继续操作");
                     }
+                    else if (input == "4")
+                    {
+                        GiveUp();
+                        break;
+                    }
+                    else if (input == "5")
+                    {
+                        Open(this);
+                        break;
+                    }
                     else
                     {
                         Console.Write("请输入1~4的数字，并按下回车");
                     }
-                }
-                switch (input)
-                {
-                    case "1":
-                        while (!Call(this))
-                        {
-                            Operate();
-                        }
-                        break;
-                    case "2":
-                        while (!AddBet(this))
-                        {
-                            Operate();
-                        }
-                        break;
-                    case "4": GiveUp(); break;
-                    case "5": Open(); break;
                 }
             }
             else
             {
                 Console.WriteLine("玩家{0},您已经弃牌，请等待当前对局结束", name);
             }
-
         }
         public delegate bool CallHandler(Player player);
         public event CallHandler Call;
@@ -148,7 +152,7 @@ namespace JinhuaBar
                 Console.WriteLine("└─────┘ └─────┘ └─────┘");
             }
         }
-        public delegate void OpenHandler();
+        public delegate void OpenHandler(Player player);
         public event OpenHandler Open;
         public void RestCard()
         {

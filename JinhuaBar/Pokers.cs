@@ -39,7 +39,6 @@ namespace JinhuaBar
                 i++;
             }
         }
-
         public void Shuffe()
         {
             deck = new Stack<Card>();
