@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 
 namespace JinhuaBar
 {
@@ -50,7 +51,11 @@ namespace JinhuaBar
         {
             player.Cards.Add(deck.Pop());
             if (player.Cards.Count == 3)
+            {
                 player.Cards.Sort();
+                player.JudgeCards();
+            }
+
         }
         public bool PlayerCall(Player player)
         {
@@ -66,7 +71,7 @@ namespace JinhuaBar
                     sumBet += stepBet * 2;
                     player.Chips -= stepBet * 2;
                     player.MyBet += stepBet * 2;
-                    Console.WriteLine("跟注成功！");
+                    Console.WriteLine("玩家{0}跟注成功！",player.Name);
                     return true;
                 }
             }
@@ -82,7 +87,7 @@ namespace JinhuaBar
                     sumBet += stepBet;
                     player.Chips -= stepBet;
                     player.MyBet += stepBet;
-                    Console.WriteLine("跟注成功！");
+                    Console.WriteLine("玩家{0}跟注成功！", player.Name);
                     return true;
                 }
             }
@@ -102,7 +107,7 @@ namespace JinhuaBar
                     sumBet += stepBet * 2;
                     player.Chips -= stepBet * 2;
                     player.MyBet += stepBet * 2;
-                    Console.WriteLine("加注成功！");
+                    Console.WriteLine("玩家{0}加注成功！", player.Name);
                     return true;
                 }
             }
@@ -119,13 +124,15 @@ namespace JinhuaBar
                     sumBet += stepBet;
                     player.Chips -= stepBet;
                     player.MyBet += stepBet;
-                    Console.WriteLine("加注成功！");
+                    Console.WriteLine("玩家{0}加注成功！", player.Name);
                     return true;
                 }
             }
         }
         public void PlayerOpen(Player player)
         {
+            Console.WriteLine("玩家{0}选择开牌", player.Name);
+            Thread.Sleep(2000);
             if (player.Chips < stepBet * 2)
             {
                 sumBet += player.Chips;
@@ -142,7 +149,7 @@ namespace JinhuaBar
             }
             JudgeWinner();
         }
-        public void DealOpen()
+        public void DealerOpen()
         {
             int count = 0;
             foreach(Player player in players)
@@ -155,6 +162,7 @@ namespace JinhuaBar
             if (count == 1)
             {
                 Console.WriteLine("场上仅剩一名玩家未弃牌，该玩家获胜");
+                Thread.Sleep(2000);
                 JudgeWinner();
             }
         }
@@ -242,6 +250,7 @@ namespace JinhuaBar
             Console.WriteLine("│     │ │     │ │     │");
             Console.WriteLine("└─────┘ └─────┘ └─────┘");
             Console.WriteLine("-------------------------------------");
+            Thread.Sleep(3000);
             foreach(Player player in players)
             {
                 Console.WriteLine("--------------玩家{0}手牌--------------", player.Name);
@@ -251,6 +260,7 @@ namespace JinhuaBar
                 Console.WriteLine("│     │ │     │ │     │");
                 Console.WriteLine("└─────┘ └─────┘ └─────┘");
                 Console.WriteLine("-------------------------------------");
+                Thread.Sleep(2000);
             }
         }
         public void Rest()
@@ -260,10 +270,11 @@ namespace JinhuaBar
             sumBet = 0;
             foreach(Player player in players)
             {
-                player.RestCard();
-                player.IsGiveUp = false;
-                player.IsSee = false;
-                player.MyBet = 0;
+                player.Rest();
+                if((player as AIPlayer) != null)
+                {
+                    (player as AIPlayer).OtherPlayersStrength = null;
+                }
             }
         }
     }

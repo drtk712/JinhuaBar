@@ -6,7 +6,6 @@ namespace JinhuaBar
 {
     class Player
     {
-        public Player() { }
         public Player(string name)
         {
             this.name = name;
@@ -17,7 +16,7 @@ namespace JinhuaBar
             get { return name; }
             set { name = value; }
         }
-        private int chips=1000;
+        private int chips=10000;
         public int Chips
         {
             get { return chips; }
@@ -66,7 +65,7 @@ namespace JinhuaBar
             get { return isGiveUp; }
             set { isGiveUp = value; }
         }
-        public void Operate()
+        public virtual void Operate()
         {
             if (!isGiveUp)
             {
@@ -84,14 +83,14 @@ namespace JinhuaBar
                     input = Console.ReadLine();
                     if(input=="1")
                     {
-                        if (Call(this))
+                        if (OnCall())
                         {
                             break;
                         }
                     }
                     else if (input == "2")
                     {
-                        if (AddBet(this))
+                        if (OnAddBet())
                         {
                             break;
                         }
@@ -110,7 +109,7 @@ namespace JinhuaBar
                     }
                     else if (input == "5")
                     {
-                        Open(this);
+                        OnOpen();
                         break;
                     }
                     else
@@ -121,17 +120,25 @@ namespace JinhuaBar
             }
             else
             {
-                Console.WriteLine("玩家{0},您已经弃牌，请等待当前对局结束", name);
+                Console.WriteLine("玩家{0}已弃牌，跳过操作",name);
             }
         }
         public delegate bool CallHandler(Player player);
         public event CallHandler Call;
+        public bool OnCall()
+        {
+            return Call(this);
+        }
         public delegate bool AddBetHandler(Player player);
         public event AddBetHandler AddBet;
+        public bool OnAddBet()
+        {
+            return AddBet(this);
+        }
         public void GiveUp()
         {
             isGiveUp = true;
-            Console.WriteLine("弃牌成功，请等待当前对局结束");
+            Console.WriteLine("玩家{0}弃牌成功",name);
         }
         public void See()
         {
@@ -154,9 +161,16 @@ namespace JinhuaBar
         }
         public delegate void OpenHandler(Player player);
         public event OpenHandler Open;
-        public void RestCard()
+        public void OnOpen()
+        {
+            Open(this);
+        }
+        public void Rest()
         {
             cards.Clear();
+            isGiveUp = false;
+            isSee = false;
+            myBet = 0;
         }
         public void JudgeCards()
         {
