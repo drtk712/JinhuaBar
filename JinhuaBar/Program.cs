@@ -167,7 +167,7 @@ namespace JinhuaBar
             int count = 1;
             while (true)
             {
-                Console.Write("开始第{0}轮游戏\n场上玩家筹码情况：\n", count++);
+                Console.Write("开始第{0}轮游戏\n庄家是{1}\n场上玩家筹码情况：\n", count++, dealer.OrderedPlayers.Peek().Name);
                 for (int i = 0; i < players.Length; i++)
                 {
                     Console.WriteLine("{0}.玩家：{1} 筹码：{2}", i + 1, players[i].Name, players[i].Chips);
@@ -177,9 +177,9 @@ namespace JinhuaBar
                 }
                 Console.WriteLine("按任意键继续...");
                 Console.ReadKey();
-                for (int i = 0; i < players.Length; i++)
+                foreach (Player player in dealer.OrderedPlayers)
                 {
-                    Console.WriteLine("玩家{0}下底注（{1}）...", players[i].Name, dealer.MinBet);
+                    Console.WriteLine("玩家{0}下底注（{1}）...", player.Name, dealer.MinBet);
                     Thread.Sleep(200);
                 }
                 Console.WriteLine("荷官开始洗牌...");
@@ -188,10 +188,10 @@ namespace JinhuaBar
                 Console.WriteLine("洗牌完毕，开始发牌...");
                 for (int j = 0; j < 3; j++)
                 {
-                    for (int i = 0; i < players.Length; i++)
+                    foreach (Player player in dealer.OrderedPlayers)
                     {
-                        Console.WriteLine("第{0}轮发牌,给玩家{1}...", j + 1, players[i].Name);
-                        dealer.Licensing(poker.Deck, players[i]);
+                        Console.WriteLine("第{0}轮发牌,给玩家{1}...", j + 1, player.Name);
+                        dealer.Licensing(poker.Deck, player);
                         Thread.Sleep(100);
                     }
                 }
@@ -200,63 +200,59 @@ namespace JinhuaBar
                 int step = 0;
                 while (!dealer.ResetGame)
                 {
-                    if (step % players.Length == 0)
+                    Console.Clear();
+                    Console.WriteLine("第{0}轮次", step++/5+1);
+                    #region 显示其他玩家信息
+                    string line1 = "", line2 = "", line3 = "", line4 = "", line5 = "";
+                    for (int i = 0; i < players.Length; i++)
                     {
-                        Console.Clear();
-                        #region 显示其他玩家信息
-                        string line1 = "", line2 = "", line3 = "", line4 = "", line5 = "";
-                        for (int i = 0; i < players.Length; i++)
+                        string temp = "";
+                        line1 += " ********************* ";
+
+                        temp = "玩家:" + players[i].Name;
+                        line2 += "*";
+                        for (int j = 0; j < (20 - temp.Length) / 2; j++)
+                            line2 += " ";
+                        line2 += temp;
+                        for (int j = 0; j < (20 - temp.Length) / 2; j++)
+                            line2 += " ";
+
+                        if (players[i].IsGiveUp)
                         {
-                            if (step % players.Length == i)
-                            {
-                                continue;
-                            }
-                            string temp = "";
-                            line1 += " ********************** ";
-
-                            temp = "玩家:" + players[i].Name;
-                            line2 += "*";
-                            for (int j = 0; j < (20 - temp.Length) / 2; j++)
-                                line2 += " ";
-                            line2 += temp;
-                            for (int j = 0; j < (20 - temp.Length) / 2; j++)
-                                line2 += " ";
-
-                            if (players[i].IsGiveUp)
-                            {
-                                temp = "已弃牌";
-                            }
-                            else
-                            {
-                                temp = players[i].IsSee2String;
-                            }
-                            line3 += "*";
-                            for (int j = 0; j < (20 - temp.Length) / 2; j++)
-                                line3 += " ";
-                            line3 += temp;
-                            for (int j = 0; j < (20 - temp.Length) / 2; j++)
-                                line3 += " ";
-
-                            temp = "注数:" + players[i].MyBet;
-                            line4 += "*";
-                            for (int j = 0; j < (20 - temp.Length) / 2; j++)
-                                line4 += " ";
-                            line4 += temp;
-                            for (int j = 0; j < (20 - temp.Length) / 2; j++)
-                                line4 += " ";
-
-                            line5 += " ********************** ";
+                            temp = "已弃牌";
                         }
-                        Console.WriteLine(line1);
-                        Console.WriteLine(line2);
-                        Console.WriteLine(line3);
-                        Console.WriteLine(line4);
-                        Console.WriteLine(line5);
-                        #endregion
+                        else
+                        {
+                            temp = players[i].IsSee2String;
+                        }
+                        line3 += "*";
+                        for (int j = 0; j < (20 - temp.Length) / 2; j++)
+                            line3 += " ";
+                        line3 += temp;
+                        for (int j = 0; j < (20 - temp.Length) / 2; j++)
+                            line3 += " ";
+
+                        temp = "注数:" + players[i].MyBet;
+                        line4 += "*";
+                        for (int j = 0; j < (20 - temp.Length) / 2; j++)
+                            line4 += " ";
+                        line4 += temp;
+                        for (int j = 0; j < (20 - temp.Length) / 2; j++)
+                            line4 += " ";
+
+                        line5 += " ********************* ";
                     }
-                    players[step++ % players.Length].Operate();
+                    Console.WriteLine(line1);
+                    Console.WriteLine(line2);
+                    Console.WriteLine(line3);
+                    Console.WriteLine(line4);
+                    Console.WriteLine(line5);
+                    #endregion
+
+                    dealer.OrderedPlayers.Peek().Operate();
+                    dealer.OrderedPlayers.Enqueue(dealer.OrderedPlayers.Dequeue());
                     dealer.DealerOpen();
-                    Thread.Sleep(1000);
+                    Thread.Sleep(500);
                 }
                 dealer.Rest();
                 Console.WriteLine("本轮结束，按任意键继续...");

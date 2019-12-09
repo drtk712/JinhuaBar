@@ -9,13 +9,22 @@ namespace JinhuaBar
     {
         public Dealer(Player[] players)
         {
-            this.players = players;
+            foreach (Player player in players)
+            {
+                orderedPlayers.Enqueue(player);
+            }
         }
-        private Player[] players;
-        public Player[] Players
+        private Queue<Player> orderedPlayers=new Queue<Player>();
+        public Queue<Player> OrderedPlayers
         {
-            get { return players; }
-            set { players = value; }
+            get
+            {
+                return orderedPlayers;
+            }
+            set
+            {
+                orderedPlayers = value;
+            }
         }
         private int minBet = 20;
         public int MinBet
@@ -132,7 +141,7 @@ namespace JinhuaBar
         public void PlayerOpen(Player player)
         {
             Console.WriteLine("玩家{0}选择开牌", player.Name);
-            Thread.Sleep(2000);
+            Thread.Sleep(1000);
             if (player.Chips < stepBet * 2)
             {
                 sumBet += player.Chips;
@@ -147,12 +156,12 @@ namespace JinhuaBar
                 player.MyBet += stepBet * 2;
                 Console.WriteLine("开牌成功！");
             }
-            JudgeWinner();
+            PKWinner(player);
         }
         public void DealerOpen()
         {
             int count = 0;
-            foreach(Player player in players)
+            foreach(Player player in OrderedPlayers)
             {
                 if (!player.IsGiveUp)
                 {
@@ -166,92 +175,137 @@ namespace JinhuaBar
                 JudgeWinner();
             }
         }
-        public void JudgeWinner()
+        public void PKWinner(Player playerPK)
         {
-            Player winner = null;
-            foreach (Player player in players)
+            while(true)
             {
-                if (!player.IsGiveUp)
+                if (orderedPlayers.Peek() != playerPK)
                 {
-                    if (winner == null)
+                    orderedPlayers.Enqueue(orderedPlayers.Dequeue());
+                }
+                else
+                {
+                    foreach (Player player in orderedPlayers)
                     {
-                        winner = player;
-                        continue;
-                    }
-                    if (player.CardType > winner.CardType)
-                    {
-                        winner = player;
-                    }
-                    else if (player.CardType == winner.CardType)
-                    {
-                        if (player.CardType == CardType.Single || player.CardType == CardType.GoldeFlower)//单只or金花pk
+                        if (playerPK == player)
                         {
-                            if (player.Cards[2].Number > winner.Cards[2].Number)
+                            continue;
+                        }
+                        if (!player.IsGiveUp)
+                        {
+                            Console.WriteLine("玩家{0}开始与玩家{1} PK", playerPK.Name, player.Name);
+                            Thread.Sleep(1000);
+                            Player winner = null;
+                            if (player.CardType > playerPK.CardType)//TODO:修改成个人PK
                             {
                                 winner = player;
                             }
-                            else if (player.Cards[2].Number == winner.Cards[2].Number)
+                            else if (player.CardType == playerPK.CardType)
                             {
-                                if (player.Cards[1].Number > winner.Cards[1].Number)
+                                if (player.CardType == CardType.Single || player.CardType == CardType.GoldeFlower)//单只or金花pk
                                 {
-                                    winner = player;
-                                }
-                                else if (player.Cards[1].Number == winner.Cards[1].Number)
-                                {
-                                    if (player.Cards[0].Number > winner.Cards[0].Number)
+                                    if (player.Cards[2].Number > playerPK.Cards[2].Number)
                                     {
                                         winner = player;
                                     }
-                                    else if (player.Cards[0].Number == winner.Cards[0].Number)
+                                    else if (player.Cards[2].Number == playerPK.Cards[2].Number)
+                                    {
+                                        if (player.Cards[1].Number > playerPK.Cards[1].Number)
+                                        {
+                                            winner = player;
+                                        }
+                                        else if (player.Cards[1].Number == playerPK.Cards[1].Number)
+                                        {
+                                            if (player.Cards[0].Number > playerPK.Cards[0].Number)
+                                            {
+                                                winner = player;
+                                            }
+                                            else if (player.Cards[0].Number == playerPK.Cards[0].Number)
+                                            {
+                                                //平局
+                                            }
+                                        }
+                                    }
+                                }
+                                else if (player.CardType == CardType.Pair)//对子pk
+                                {
+                                    if (player.Cards[2].Number > playerPK.Cards[2].Number)
+                                    {
+                                        winner = player;
+                                    }
+                                    else if (player.Cards[2].Number == playerPK.Cards[2].Number)
+                                    {
+                                        if (player.Cards[0].Number > playerPK.Cards[0].Number)
+                                        {
+                                            winner = player;
+                                        }
+                                        else if (player.Cards[0].Number == playerPK.Cards[0].Number)
+                                        {
+                                            //平局
+                                        }
+                                    }
+                                }
+                                else if (player.CardType == CardType.Junko || player.CardType == CardType.Flush || player.CardType == CardType.Leopard)//顺子or同花顺or豹子pk
+                                {
+                                    if (player.Cards[0].Number > playerPK.Cards[0].Number)
+                                    {
+                                        winner = player;
+                                    }
+                                    else if (player.Cards[0].Number == playerPK.Cards[0].Number)
                                     {
                                         //平局
                                     }
                                 }
                             }
-                        }
-                        else if (player.CardType == CardType.Pair)//对子pk
-                        {
-                            if (player.Cards[2].Number > winner.Cards[2].Number)
+                            if (winner == player)
                             {
-                                winner = player;
+                                Console.WriteLine("玩家{0}与玩家{1} PK失败", playerPK.Name, player.Name);
+                                playerPK.IsGiveUp = true;
+                                break;
                             }
-                            else if (player.Cards[2].Number == winner.Cards[2].Number)
+                            else
                             {
-                                if (player.Cards[0].Number > winner.Cards[0].Number)
-                                {
-                                    winner = player;
-                                }
-                                else if (player.Cards[0].Number == winner.Cards[0].Number)
-                                {
-                                    //平局
-                                }
+                                Console.WriteLine("玩家{0}与玩家{1} PK胜利", playerPK.Name, player.Name);
+                                player.IsGiveUp = true;
                             }
                         }
-                        else if (player.CardType == CardType.Junko || player.CardType == CardType.Flush || player.CardType == CardType.Leopard)//顺子or同花顺or豹子pk
-                        {
-                            if (player.Cards[0].Number > winner.Cards[0].Number)
-                            {
-                                winner = player;
-                            }
-                            else if (player.Cards[0].Number == winner.Cards[0].Number)
-                            {
-                                //平局
-                            }
-                        }
+                        Thread.Sleep(2000);
                     }
+                    break;
                 }
             }
-            resetGame = true;
-            winner.Chips += sumBet;
-            Console.WriteLine("--------------赢家是{0}--------------", winner.Name);
-            Console.WriteLine("┌─────┐ ┌─────┐ ┌─────┐");
-            Console.WriteLine("│ {0}   │ │ {1}   │ │ {2}   │", winner.Cards[0].Number2String, winner.Cards[1].Number2String, winner.Cards[2].Number2String);
-            Console.WriteLine("│  {0} │ │  {1} │ │  {2} │", winner.Cards[0].Suit2Sharp, winner.Cards[1].Suit2Sharp, winner.Cards[2].Suit2Sharp);
-            Console.WriteLine("│     │ │     │ │     │");
-            Console.WriteLine("└─────┘ └─────┘ └─────┘");
-            Console.WriteLine("-------------------------------------");
-            Thread.Sleep(3000);
-            foreach(Player player in players)
+        }
+        public void JudgeWinner()
+        {
+            while (true)
+            {
+                if (!orderedPlayers.Peek().IsGiveUp)
+                {
+                    resetGame = true;
+                    orderedPlayers.Peek().Chips += sumBet;
+                    Console.WriteLine("--------------赢家是{0}--------------", orderedPlayers.Peek().Name);
+                    Console.WriteLine("┌─────┐ ┌─────┐ ┌─────┐");
+                    Console.WriteLine("│ {0}   │ │ {1}   │ │ {2}   │", orderedPlayers.Peek().Cards[0].Number2String, orderedPlayers.Peek().Cards[1].Number2String, orderedPlayers.Peek().Cards[2].Number2String);
+                    Console.WriteLine("│  {0} │ │  {1} │ │  {2} │", orderedPlayers.Peek().Cards[0].Suit2Sharp, orderedPlayers.Peek().Cards[1].Suit2Sharp, orderedPlayers.Peek().Cards[2].Suit2Sharp);
+                    Console.WriteLine("│     │ │     │ │     │");
+                    Console.WriteLine("└─────┘ └─────┘ └─────┘");
+                    Console.WriteLine("-------------------------------------");
+                    Thread.Sleep(2000);
+
+                    ShowResult();
+                    break;
+                }
+                else
+                {
+                    orderedPlayers.Enqueue(orderedPlayers.Dequeue());
+                }
+            }
+
+        }
+
+        public void ShowResult()
+        {
+            foreach (Player player in orderedPlayers)
             {
                 Console.WriteLine("--------------玩家{0}手牌--------------", player.Name);
                 Console.WriteLine("┌─────┐ ┌─────┐ ┌─────┐");
@@ -268,7 +322,7 @@ namespace JinhuaBar
             resetGame = false;
             stepBet = 20;
             sumBet = 0;
-            foreach(Player player in players)
+            foreach(Player player in orderedPlayers)
             {
                 player.Rest();
                 if((player as AIPlayer) != null)
