@@ -75,7 +75,7 @@ namespace JinhuaBar
             if (IsSee)
             {
                 winRate = (winRate + AbsoluteWinRate) / 2;
-                if (winRate > 0.55)
+                if (winRate > 0.4)
                 {
                     if (InvestRate < 0.2)
                     {
@@ -101,7 +101,7 @@ namespace JinhuaBar
                     {
                         OnAddBet();
                     }
-                    else if(winRate >0.13 && winRate <= 0.25)
+                    else if(winRate >0.18 && winRate <= 0.25)
                     {
                         if (InvestRate > 0.15)
                         {
@@ -112,7 +112,7 @@ namespace JinhuaBar
                             OnCall();
                         }
                     }
-                    else if(winRate<=0.13)
+                    else if(winRate<=0.18)
                     {
                         if (InvestRate > 0.4)
                         {
